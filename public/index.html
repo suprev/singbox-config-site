@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sing-box 配置查看/下载</title>
+  <style>
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "PingFang SC", "Microsoft Yahei", sans-serif; margin: 0; padding: 24px; }
+    .wrap { max-width: 900px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 12px; }
+    .bar { display: flex; gap: 8px; margin: 0 0 16px; }
+    button { padding: 10px 14px; border: 1px solid #ddd; border-radius: 10px; background: #fff; cursor: pointer; }
+    button:hover { background: #f6f6f6; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 16px; border-radius: 12px; overflow: auto; }
+    .tip { color: #475569; font-size: 13px; margin-top: 8px; }
+    input { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 10px; }
+    label { display:block; font-size: 13px; color: #334155; margin: 12px 0 6px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Sing-box 配置查看 / 下载</h1>
+
+    <label>API 地址（你的 Cloudflare Worker 自定义域名）</label>
+    <input id="api" value="https://config.example.com" />
+
+    <div class="bar">
+      <button onclick="loadConfig()">加载配置</button>
+      <button onclick="downloadConfig()">下载 config.json</button>
+      <button onclick="copyUrl()">复制订阅 URL</button>
+    </div>
+
+    <pre id="output">点击「加载配置」以查看内容…</pre>
+    <div class="tip">小提示：页面默认从 <code>/config.json</code> 拉取；下载按钮会访问 <code>/download</code>。</div>
+  </div>
+
+  <script>
+    function apiBase() {
+      let v = document.getElementById('api').value.trim();
+      if (v.endsWith('/')) v = v.slice(0, -1);
+      return v;
+    }
+
+    async function loadConfig() {
+      const url = apiBase() + "/config.json";
+      const res = await fetch(url);
+      if (!res.ok) {
+        document.getElementById('output').textContent = `加载失败：${res.status}`;
+        return;
+      }
+      const data = await res.json();
+      document.getElementById('output').textContent = JSON.stringify(data, null, 2);
+    }
+
+    async function downloadConfig() {
+      const url = apiBase() + "/download";
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = "config.json";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    async function copyUrl() {
+      const url = apiBase() + "/config.json";
+      await navigator.clipboard.writeText(url);
+      alert("已复制：" + url);
+    }
+  </script>
+</body>
+</html>
